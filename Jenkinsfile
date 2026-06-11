@@ -27,5 +27,20 @@ pipeline {
                 }
             }
         }
+        stage ("deploy to production") {
+            sshagent(credentials: ['ec2-production-key']) {
+                sh '''
+                    ssh -o StrictHostKeyChecking=no ubuntu@44.203.127.225 "
+                    docker pull timabai/test-app-image:latest && \
+                    (docker stop website || true) && \
+                    (docker rm website || true) && \
+                    docker run -d \
+                    -p 80:80 \
+                    --name website \
+                    timabai/test-app-image:latest
+                    "
+                '''
+            }
+        }
     }
 }
