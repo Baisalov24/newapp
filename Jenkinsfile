@@ -8,12 +8,23 @@ pipeline {
         }
         stage("Build image") {
             steps {
-                sh 'docker build -t test-image .'
+                sh 'docker build -t timabai/test-app-image .'
             } 
         }
-        stage("Run conatainer") {
+        stage("push") {
             steps {
-                sh 'docker run -d -p 80:80 --name headphone-container test-image'
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-creds',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                    )
+                ]) {
+                    sh '''
+                    docker login -u "$DOCKER_USER" --password-stdin
+                    docker push timabai/test-app-image:latest
+                    '''
+                }
             }
         }
     }
